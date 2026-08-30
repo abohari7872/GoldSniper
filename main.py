@@ -13,6 +13,8 @@ from order_block_engine import detect_order_block
 from daily_target import check_daily_target
 from trade_history import add_trade
 from trade_history import get_trade_count
+from trade_history import can_take_trade
+from telegram_engine import send_signal
 
 print("GoldSniper Starting...")
 
@@ -39,11 +41,29 @@ score, signal, reasons = generate_signal(
     current_session
 )
 
-add_trade(
-    signal,
-    values["price"],
-    score
-)
+if not can_take_trade():
+    signal = "MAX TRADES REACHED"
+
+if signal == "BUY":
+
+    add_trade(
+        signal,
+        values["price"],
+        score
+    )
+
+    send_signal(
+        f"""
+GoldSniper BUY Signal
+
+Price: {values["price"]:.2f}
+
+Confidence: {score}%
+
+Reasons:
+{chr(10).join("✅ " + r for r in reasons)}
+"""
+    )
 
 trade_plan = build_trade_plan(
     values["price"],
