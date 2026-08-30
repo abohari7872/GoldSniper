@@ -1,22 +1,17 @@
-def build_trade_plan(price, signal):
+def build_trade_plan(price, signal, support, resistance):
 
     if signal == "WAIT":
         return None
 
-    if signal == "WATCHLIST":
+    entry = round(price - 2.0, 2)
 
-        return {
-            "entry": round(price - 1.0, 2),
-            "sl": round(price - 3.0, 2),
-            "tp": round(price + 6.0, 2)
-        }
+    sl = round(entry - 2.0, 2)
 
-    if signal == "BUY":
+    tp = round(entry + 6.0, 2)
 
-        return {
-            "entry": round(price - 0.5, 2),
-            "sl": round(price - 2.0, 2),
-            "tp": round(price + 6.0, 2)
-        }
-
-    return None
+    return {
+        "entry": entry,
+        "sl": sl,
+        "tp": tp,
+        "status": "WAIT FOR ENTRY"
+    }

@@ -15,22 +15,28 @@ from trade_history import add_trade
 from trade_history import get_trade_count
 from trade_history import can_take_trade
 from telegram_engine import send_signal
+from signal_memory import should_send_signal
+
 
 print("GoldSniper Starting...")
 
+# Get Market Data
 data = get_gold_data()
+
 structure = detect_structure(data)
 liquidity = detect_liquidity_sweep(data)
 fvg = detect_fvg(data)
 choch = detect_choch(data)
 order_block = detect_order_block(data)
 
-
+# Indicators
 values = calculate_indicators(data)
+
 support, resistance = get_support_resistance(data)
 
 current_session = get_session()
 
+# Generate Signal
 score, signal, reasons = generate_signal(
     values,
     structure,
@@ -41,9 +47,19 @@ score, signal, reasons = generate_signal(
     current_session
 )
 
+# Max Trades Check
 if not can_take_trade():
     signal = "MAX TRADES REACHED"
 
+# Build Trade Plan FIRST
+trade_plan = build_trade_plan(
+    values["price"],
+    signal,
+    support,
+    resistance
+)
+
+# Add Trade
 if signal == "BUY":
 
     add_trade(
@@ -52,28 +68,40 @@ if signal == "BUY":
         score
     )
 
+# Send Telegram Alert
+if signal == "BUY" and trade_plan and should_send_signal(signal):
+
     send_signal(
         f"""
-GoldSniper BUY Signal
+🚀 GOLDSNIPER BUY SETUP
 
 Price: {values["price"]:.2f}
 
 Confidence: {score}%
+
+Status:
+{trade_plan["status"]}
+
+Entry:
+{trade_plan["entry"]}
+
+SL:
+{trade_plan["sl"]}
+
+TP:
+{trade_plan["tp"]}
 
 Reasons:
 {chr(10).join("✅ " + r for r in reasons)}
 """
     )
 
-trade_plan = build_trade_plan(
-    values["price"],
-    signal
-)
-
+# Daily Target
 today_pips = 65
 
 daily_status = check_daily_target(today_pips)
 
+# Output
 print("\n===== GOLDSNIPER =====")
 
 print(f'Current Price : {values["price"]:.2f}')
@@ -81,12 +109,14 @@ print(f'EMA20         : {values["ema20"]:.2f}')
 print(f'EMA50         : {values["ema50"]:.2f}')
 print(f'EMA200        : {values["ema200"]:.2f}')
 print(f'RSI           : {values["rsi"]:.2f}')
+
 print(f"Session       : {current_session}")
 print(f"Structure     : {structure}")
 print(f"Liquidity     : {liquidity}")
 print(f"FVG           : {fvg}")
 print(f"CHOCH         : {choch}")
 print(f"Order Block   : {order_block}")
+
 print(f'Support      : {support:.2f}')
 print(f'Resistance   : {resistance:.2f}')
 
@@ -107,6 +137,7 @@ if trade_plan:
 
     print("\n===== TRADE PLAN =====")
 
+    print(f'Status     : {trade_plan["status"]}')
     print(f'Entry Zone : {trade_plan["entry"]}')
     print(f'SL         : {trade_plan["sl"]}')
     print(f'TP         : {trade_plan["tp"]}')
