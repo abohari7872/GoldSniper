@@ -1,13 +1,17 @@
-last_signal = None
-
-
 def should_send_signal(signal):
 
-    global last_signal
+    try:
+
+        with open("last_signal.txt", "r") as file:
+            last_signal = file.read().strip()
+
+    except:
+        last_signal = ""
 
     if signal == last_signal:
         return False
 
-    last_signal = signal
+    with open("last_signal.txt", "w") as file:
+        file.write(signal)
 
     return True
