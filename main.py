@@ -1,6 +1,3 @@
-import signal_engine
-
-print(signal_engine.generate_signal.__code__.co_argcount)
 from market_data import get_gold_data
 from indicators import calculate_indicators
 from signal_engine import generate_signal
@@ -12,6 +9,10 @@ from liquidity_engine import detect_liquidity_sweep
 from fvg_engine import detect_fvg
 from trade_planner import build_trade_plan
 from choch_engine import detect_choch
+from order_block_engine import detect_order_block
+from daily_target import check_daily_target
+from trade_history import add_trade
+from trade_history import get_trade_count
 
 print("GoldSniper Starting...")
 
@@ -20,6 +21,7 @@ structure = detect_structure(data)
 liquidity = detect_liquidity_sweep(data)
 fvg = detect_fvg(data)
 choch = detect_choch(data)
+order_block = detect_order_block(data)
 
 
 values = calculate_indicators(data)
@@ -27,19 +29,30 @@ support, resistance = get_support_resistance(data)
 
 current_session = get_session()
 
-score, signal = generate_signal(
+score, signal, reasons = generate_signal(
     values,
     structure,
     liquidity,
     fvg,
     choch,
+    order_block,
     current_session
+)
+
+add_trade(
+    signal,
+    values["price"],
+    score
 )
 
 trade_plan = build_trade_plan(
     values["price"],
     signal
 )
+
+today_pips = 65
+
+daily_status = check_daily_target(today_pips)
 
 print("\n===== GOLDSNIPER =====")
 
@@ -53,11 +66,22 @@ print(f"Structure     : {structure}")
 print(f"Liquidity     : {liquidity}")
 print(f"FVG           : {fvg}")
 print(f"CHOCH         : {choch}")
+print(f"Order Block   : {order_block}")
 print(f'Support      : {support:.2f}')
 print(f'Resistance   : {resistance:.2f}')
 
 print(f'\nConfidence Score : {score}%')
 print(f'Signal : {signal}')
+
+print("\nReasons:")
+
+for reason in reasons:
+    print(f"✅ {reason}")
+
+print("\n===== DAILY TARGET =====")
+print(f"Today's Pips : {today_pips}")
+print(f"Status       : {daily_status}")
+print(f"Trades Today : {get_trade_count()}")
 
 if trade_plan:
 

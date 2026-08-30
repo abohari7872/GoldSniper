@@ -1,15 +1,15 @@
-def generate_signal(values, structure, liquidity, fvg, choch, session):
+def generate_signal(values, structure, liquidity, fvg, choch, order_block, session):
 
     score = 0
 
-    # Structure (BOS)
+    # Structure
     if structure == "BULLISH BOS":
         score += 25
 
     elif structure == "BEARISH BOS":
         score += 25
 
-    # Liquidity Sweep
+    # Liquidity
     if liquidity != "NO SWEEP":
         score += 20
 
@@ -21,7 +21,11 @@ def generate_signal(values, structure, liquidity, fvg, choch, session):
     if choch != "NO CHOCH":
         score += 15
 
-    # Session Score
+    # Order Block
+    if order_block != "NO ORDER BLOCK":
+        score += 20
+
+    # Session
     if session == "LONDON":
         score += 15
 
@@ -31,15 +35,17 @@ def generate_signal(values, structure, liquidity, fvg, choch, session):
     elif session == "ASIAN":
         score += 10
 
-    # EMA Confirmation
+    # EMA
     if values["ema20"] > values["ema50"]:
         score += 10
 
-    # RSI Confirmation
+    # RSI
     if values["rsi"] > 55:
         score += 10
 
-    # Default Signal
+    if score > 100:
+        score = 100
+
     signal = "WAIT"
 
     if score >= 85:
@@ -48,7 +54,21 @@ def generate_signal(values, structure, liquidity, fvg, choch, session):
     elif score >= 65:
         signal = "WATCHLIST"
 
-    else:
-        signal = "WAIT"
+    reasons = []
 
-    return score, signal
+    if structure != "RANGE":
+        reasons.append(structure)
+
+    if liquidity != "NO SWEEP":
+        reasons.append(liquidity)
+
+    if fvg != "NO FVG":
+        reasons.append(fvg)
+
+    if choch != "NO CHOCH":
+        reasons.append(choch)
+
+    if order_block != "NO ORDER BLOCK":
+        reasons.append(order_block)
+
+    return score, signal, reasons
