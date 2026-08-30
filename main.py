@@ -1,3 +1,6 @@
+import signal_engine
+
+print(signal_engine.generate_signal.__code__.co_argcount)
 from market_data import get_gold_data
 from indicators import calculate_indicators
 from signal_engine import generate_signal
@@ -8,6 +11,7 @@ from structure_engine import detect_structure
 from liquidity_engine import detect_liquidity_sweep
 from fvg_engine import detect_fvg
 from trade_planner import build_trade_plan
+from choch_engine import detect_choch
 
 print("GoldSniper Starting...")
 
@@ -15,6 +19,7 @@ data = get_gold_data()
 structure = detect_structure(data)
 liquidity = detect_liquidity_sweep(data)
 fvg = detect_fvg(data)
+choch = detect_choch(data)
 
 
 values = calculate_indicators(data)
@@ -27,6 +32,7 @@ score, signal = generate_signal(
     structure,
     liquidity,
     fvg,
+    choch,
     current_session
 )
 
@@ -46,6 +52,7 @@ print(f"Session       : {current_session}")
 print(f"Structure     : {structure}")
 print(f"Liquidity     : {liquidity}")
 print(f"FVG           : {fvg}")
+print(f"CHOCH         : {choch}")
 print(f'Support      : {support:.2f}')
 print(f'Resistance   : {resistance:.2f}')
 

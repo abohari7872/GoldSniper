@@ -1,15 +1,15 @@
-def generate_signal(values, structure, liquidity, fvg, session):
+def generate_signal(values, structure, liquidity, fvg, choch, session):
 
     score = 0
 
-    # Structure
+    # Structure (BOS)
     if structure == "BULLISH BOS":
         score += 25
 
-    if structure == "BEARISH BOS":
+    elif structure == "BEARISH BOS":
         score += 25
 
-    # Liquidity
+    # Liquidity Sweep
     if liquidity != "NO SWEEP":
         score += 20
 
@@ -17,7 +17,11 @@ def generate_signal(values, structure, liquidity, fvg, session):
     if fvg != "NO FVG":
         score += 20
 
-    # Session
+    # CHOCH
+    if choch != "NO CHOCH":
+        score += 15
+
+    # Session Score
     if session == "LONDON":
         score += 15
 
@@ -27,20 +31,21 @@ def generate_signal(values, structure, liquidity, fvg, session):
     elif session == "ASIAN":
         score += 10
 
-    # EMA Filter
+    # EMA Confirmation
     if values["ema20"] > values["ema50"]:
         score += 10
 
-    # RSI Filter
+    # RSI Confirmation
     if values["rsi"] > 55:
         score += 10
 
+    # Default Signal
     signal = "WAIT"
 
-    if score >= 80:
+    if score >= 85:
         signal = "BUY"
 
-    elif score >= 60:
+    elif score >= 65:
         signal = "WATCHLIST"
 
     else:
